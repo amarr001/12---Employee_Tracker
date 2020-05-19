@@ -15,7 +15,7 @@ const connection = mysql.createConnection({
   database: 'tracker_db',
 });
 
-// Wrap connection.connect() in a promise!
+// Wrap connection.connect() in a promise
 async function connect() {
   return new Promise((resolve, reject) => {
       connection.connect(err => {
@@ -24,7 +24,7 @@ async function connect() {
       })
   })
 }
-// Wrap connection.query() in a promise!
+// Wrap connection.query() in a promise
 async function query(command, values) {
   return new Promise((resolve, reject) => {
       connection.query(command, values, (error, results) => {
@@ -158,66 +158,48 @@ async function main() {
       }
        // *********************
 
-
-        else if (firstAction === 'Add Employee') {
+       if (firstAction === 'Add Employee') {
             
-            // This a bit cheeky, I've renamed id -> value because inquirer can use
-            // a name/value pair in its 'choices' field.
-            const items = await query(`
-                SELECT
-                    id AS value,
-                    name
-                FROM items
-            `);
-            
-            // What if there's nothing to bid on?
-            if (items.length === 0) {
-                console.log("There's nothing to bid on, how about POSTing an item?\n");
-                
-                // For those perplexed, this will shortcut to the top of the loop.
-                continue;
-            }
-            
-            // Ask away.
-            const answers = await inquirer.prompt([
-                {
-                    name: 'item',
-                    type: 'list',
-                    message: 'What do you want to bid on?',
-                    choices: items,
-                },
-                {
-                    name: 'bid',
-                    type: 'number',
-                    message: 'How much is your bid?',
-                }
-            ]);
-            
-            // Let's update the item, but only if the new bid is _greater_ than
-            // the existing price.
-            const result = await query(`
-                UPDATE items
-                    SET price = ?
-                WHERE id = ?
-                    AND ? > price
-            `, [answers.bid, answers.item, answers.bid]);
-            
-            // Remember that INSERT/UPDATE/DELETE doesn't return a table of rows.
-            // Instead they return an 'OK' status.
-            
-            if (result.changedRows === 1) {
-                // It updated, so therefore we have a bigger bid!
-                console.log("Congrats! You are now the highest bidder.\n");
-            }
-            else {
-                // In this case because we haven't updated anything we can assert that
-                // the new bid was not bigger than the existing price.
-                console.log(`Sorry, the current bid is bigger than ${answers.bid}.\n`);
-            }
-        }
+          const answers = await inquirer.prompt([
+            {
+                name: 'firstname',
+                type: 'input',
+                message: "Employee's first name?"
+            },
+            {
+              name: 'lastname',
+              type: 'input',
+              message: "Employee's last name?"
+            },
+            {
+                name: 'role',
+                type: 'number',
+                message: 'Which role?'
+            },
+            {
+              name: 'managerId',
+              type: 'number',
+              message: "Type the manager's id"
+          }
+        ]);
         
-        // If it's not POST or BID, then it _must_ be EXIT.
-        else if (firstAction === "EXIT") {
+        // Okay, let's create it in the database.
+        await query(
+        "INSERT INTO employee SET ?",
+        [{
+          first_name: answers.firstname,
+          last_name: answers.lastname,
+          role_id: answers.role || 0,
+          manager_id: answers.managerId || 0
+        }],
+        );
+        
+        // Check whether the query worked or not.
+        console.log("Employee added successfully!\n");
+      }
+        
+        
+        else if (firstAction === "Exit") {
             console.log("Thanks, see you later!\n");
             break;
         }
@@ -229,12 +211,3 @@ async function main() {
 
 // Start the app.
 main().catch(err => console.log(err));
-
-
-// "View All Employees", 
-"View All Employees by Department", 
-"View All Employees by Manager",
-"Add Employee",
-"Remove Employee",
-"Update Employee Role",
-"Update Employee Manager"
