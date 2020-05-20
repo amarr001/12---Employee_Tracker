@@ -206,7 +206,7 @@ async function main() {
       if (firstAction === 'Remove Employee'){
         removal();
       }
-//*********************************************************************************************************************
+      
     // Update employee role
     
     if (firstAction === 'Update Employee Role'){
