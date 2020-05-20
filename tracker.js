@@ -81,26 +81,28 @@ async function main() {
 
             case "Operations management":
               const manager = await query (`
-              SELECT first_name, last_name
+              SELECT first_name, last_name, role_id, manager_id
               FROM employee
               WHERE role_id = 1`);
              for (var i = 0; i < manager.length; i++) {
               console.log(
                 "\n" + "Employee: " +
-                  manager[i].first_name +  " "  + manager[i].last_name + "\n"
+                  manager[i].first_name +  " "  + manager[i].last_name + "\n" + "Role id: " 
+                  + manager[i].role_id + "\n" + "Manager id: " + manager[i].manager_id + "\n"
               );
              }
               break;
             
             case "Human Resources":
               const hr = await query (`
-              SELECT first_name, last_name
+              SELECT first_name, last_name, role_id, manager_id
               FROM employee
               WHERE role_id = 2`);
              for (var i = 0; i < hr.length; i++) {
               console.log(
                 "\n" + "Employee(s): " +
-                  hr[i].first_name +  " "  + hr[i].last_name + "\n"
+                  hr[i].first_name +  " "  + hr[i].last_name + "\n" + "Role id: " 
+                  + hr[i].role_id + "\n" + "Manager id: " + hr[i].manager_id + "\n"
               );
              }
               
@@ -108,7 +110,7 @@ async function main() {
       
             case "Marketing":
               const marketDep = await query (`
-              SELECT first_name, last_name
+              SELECT first_name, last_name, role_id, manager_id
               FROM employee
               LEFT JOIN roletracker ON roletracker.id = employee.role_id
               WHERE roletracker.department_id = 3
@@ -116,14 +118,15 @@ async function main() {
              for (var i = 0; i < marketDep.length; i++) {
               console.log(
                 "\n" + "Employee(s): " +
-                  marketDep[i].first_name +  " "  + marketDep[i].last_name + "\n"
+                  marketDep[i].first_name +  " "  + marketDep[i].last_name + "\n" + "Role id: " 
+                  + marketDep[i].role_id + "\n" + "Manager id: " + marketDep[i].manager_id + "\n"
               );
              }
               break;
       
             case "Finance":
               const financeDep = await query (`
-              SELECT first_name, last_name
+              SELECT first_name, last_name, role_id, manager_id
               FROM employee
               LEFT JOIN roletracker ON roletracker.id = employee.role_id
               WHERE roletracker.department_id = 4
@@ -131,14 +134,15 @@ async function main() {
              for (var i = 0; i < financeDep.length; i++) {
               console.log(
                 "\n" + "Employee(s): " +
-                financeDep[i].first_name +  " "  + financeDep[i].last_name + "\n"
+                financeDep[i].first_name +  " "  + financeDep[i].last_name + "\n" + "Role id: " 
+                + financeDep[i].role_id + "\n" + "Manager id: " + financeDep[i].manager_id + "\n"
               );
              }
               break;
       
             case "IT":
               const itDep = await query (`
-              SELECT first_name, last_name
+              SELECT first_name, last_name, role_id, manager_id
               FROM employee
               LEFT JOIN roletracker ON roletracker.id = employee.role_id
               WHERE roletracker.department_id = 5
@@ -146,7 +150,8 @@ async function main() {
              for (var i = 0; i < itDep.length; i++) {
               console.log(
                 "\n" + "Employee(s): " +
-                itDep[i].first_name +  " "  + itDep[i].last_name + "\n"
+                itDep[i].first_name +  " "  + itDep[i].last_name + "\n" + "Role id: " 
+                + itDep[i].role_id + "\n" + "Manager id: " + itDep[i].manager_id + "\n"
               );
              }
               break;
@@ -156,7 +161,6 @@ async function main() {
           // Check whether the query worked or not.
           console.log("Company Folks.\n");
       }
-       // *********************
 
        if (firstAction === 'Add Employee') {
             
@@ -197,8 +201,13 @@ async function main() {
         // Check whether the query worked or not.
         console.log("Employee added successfully!\n");
       }
+
+      // *************************************************************************************
         
-        
+      if (firstAction === 'Remove Employee'){
+        removal();
+      }
+  
         else if (firstAction === "Exit") {
             console.log("Thanks, see you later!\n");
             break;
@@ -211,3 +220,48 @@ async function main() {
 
 // Start the app.
 main().catch(err => console.log(err));
+
+function removal() {
+  // query the database for all items being auctioned
+  connection.query("SELECT last_name, id from employee", function(err, results) {
+    if (err) throw err;
+    // once you have the items, prompt the user for which they'd like to bid on
+    inquirer
+      .prompt([
+        {
+          name: "removeEmployee",
+          type: "list",
+          message: "PLease select employee to be removed: ",
+          choices: function() {
+            var choiceArray = [];
+            for (var i = 0; i < results.length; i++) {
+              choiceArray.push(results[i].last_name + results[i].id);
+            }
+            choiceArray.push("** BACK TO INITIAL MENU **")
+            return choiceArray;   
+        }
+      }
+      ])
+      .then(function(answer) {
+        var chosenItem;
+        for (var i = 0; i < results.length; i++) {
+          if (results[i].last_name + results[i].id === answer.removeEmployee) {
+            console.log("check point")
+            chosenItem = results[i];
+         
+          connection.query(
+            "DELETE FROM employee WHERE id = ?",
+            [
+             chosenItem.id
+            ],
+            
+            function(error) {
+              if (error) throw err;
+              console.log("Employee successfully removed!");
+            }
+          );  
+        }
+      }
+    })  
+  })
+}
