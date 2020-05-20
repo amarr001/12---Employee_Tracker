@@ -34,8 +34,8 @@ async function query(command, values) {
   })
 }
 async function main() {
-    
-    // Breathe the fresh air of promisified connections.
+
+    //Promised connection
     await connect();
     console.log("You are connected!", connection.threadId);
     
@@ -58,10 +58,9 @@ async function main() {
             ],
         });
         
-        // Make a new auction item.
+        // View all employees by department
         if (firstAction === 'View All Employees by Department') {
             
-          // Describe the item.
           const answers = await inquirer.prompt([
               {
                   name: 'departmentSelection',
@@ -202,17 +201,25 @@ async function main() {
         console.log("Employee added successfully!\n");
       }
 
-      // *************************************************************************************
+      // Remove employee
         
       if (firstAction === 'Remove Employee'){
         removal();
       }
-  
-        else if (firstAction === "Exit") {
-            console.log("Thanks, see you later!\n");
-            break;
-        }
+//*********************************************************************************************************************
+    // Update employee role
+    
+    if (firstAction === 'Update Employee Role'){
+      updateRole();
     }
+
+   //EXIT
+
+    else if (firstAction === "Exit") {
+      console.log("Thanks, see you later!\n");
+      break;
+  }
+}
     
     // Tidy up.
     connection.end();
@@ -221,11 +228,14 @@ async function main() {
 // Start the app.
 main().catch(err => console.log(err));
 
+
+// Functions
+
 function removal() {
-  // query the database for all items being auctioned
+  
   connection.query("SELECT last_name, id from employee", function(err, results) {
     if (err) throw err;
-    // once you have the items, prompt the user for which they'd like to bid on
+    
     inquirer
       .prompt([
         {
@@ -264,4 +274,66 @@ function removal() {
       }
     })  
   })
+}
+
+function updateRole() {
+
+  // query the database for all items being auctioned
+  connection.query("SELECT title, role_id FROM roletracker LEFT JOIN employee ON roletracker.id = employee.role_id;", 
+  function(err, results) {
+    if (err) throw err;
+    // once you have the items, prompt the user for which they'd like to bid on
+    inquirer
+      .prompt([
+        {
+          name: "choice", 
+          type: "rawlist",
+          choices: function() {
+            var choiceArray = [];
+            for (var i = 0; i < results.length; i++) {
+              choiceArray.push(results[i].title + results[i].role_id);
+            }
+            return choiceArray;
+          },
+          message: "Which role would you like to update your current employee to?"
+        },
+        {
+          name: "employeeId",
+          type: "input",
+          message: "Enter employee's unique id:"
+        }
+      ])
+      .then(function(answer) {
+        // get the information of the chosen role
+        var chosenRole;
+        for (var i = 0; i < results.length; i++) {
+          if (results[i].title + results[i].role_id === answer.choice) {
+            chosenRole = results[i];
+          }
+        }
+
+        // determine if role is up to date
+        if (chosenRole.highest_bid === answer.choice) {
+          console.log("The role is already up to date!")
+
+        } else {
+          
+          connection.query(
+            "UPDATE employee SET ? WHERE ?",
+            [
+              {
+                role_id: chosenRole.role_id
+              },
+              {
+                id: answer.employeeId
+              }
+            ],
+            function(error) {
+              if (error) throw err;
+              console.log("Role updated successfully!");
+            }
+          );
+          }
+      });
+  });
 }
