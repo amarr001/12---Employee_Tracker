@@ -5,4 +5,5 @@
  `npm install`   
 # How to use 
  By using the command line you will be able to view employees by department, add or remove employees and update roles. Firt run the command `node tracker.js` then answer to the prompted questions.
+ Check out the video video demonstrating the entirety of the app's functionality [https://drive.google.com/file/d/13UeJDtbV57BpnPCRTH4cS0ogRHNzG8g5/view]
  
