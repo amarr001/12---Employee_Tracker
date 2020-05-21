@@ -11,7 +11,7 @@ const cTable = require('console.table');
 const connection = mysql.createConnection({
   host: 'localhost',
   user: 'root',
-  password: 'datacbd!',
+  password: '',
   database: 'tracker_db',
 });
 
@@ -192,8 +192,8 @@ async function main() {
         [{
           first_name: answers.firstname,
           last_name: answers.lastname,
-          role_id: answers.role || 0,
-          manager_id: answers.managerId || 0
+          role_id: answers.role || null,
+          manager_id: answers.managerId || null
         }],
         );
         
@@ -206,7 +206,7 @@ async function main() {
       if (firstAction === 'Remove Employee'){
         removal();
       }
-      
+
     // Update employee role
     
     if (firstAction === 'Update Employee Role'){
@@ -268,6 +268,7 @@ function removal() {
             function(error) {
               if (error) throw err;
               console.log("Employee successfully removed!");
+              
             }
           );  
         }
